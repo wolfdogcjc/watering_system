@@ -1,4 +1,4 @@
-"""version 1.1"""
+"""version 1.2"""
 #include <RTClib.h>
 
 RTC_DS1307 rtc;
@@ -39,6 +39,16 @@ void setup() {
   pinMode(rtcPowerPin, OUTPUT);
   digitalWrite(rtcPowerPin, HIGH); // Power on the RTC module
 
+  // Check if reset was requested
+  if (Serial.available() > 0) {
+    String input = Serial.readStringUntil('\n');
+    if (input == "reset") {
+      Serial.println("Resetting");
+      delay(1000);
+      resetFunc(); // Reset the Arduino
+    }
+  }
+
   // Initialize the RTC
   rtc.begin();
 
@@ -47,6 +57,8 @@ void setup() {
 
   // Turn off all pumps
   stopWatering();
+
+  Serial.println("Setup done");
 }
 
 void loop() {
@@ -148,10 +160,12 @@ void loop() {
           manualWateringRequested = true;
         }
       }
+    } else if (input == "reset") {
+      Serial.println("Resetting");
+      delay(1000);
+      resetFunc(); // Reset the Arduino
     }
   }
-
-  // Add any additional code or functionality here
 
   // Wait for a second before checking the time again
   delay(1000);
@@ -204,4 +218,9 @@ void printWateringTime(int hour, int minute, int second) {
   Serial.print(":");
   Serial.print(second);
   Serial.println();
+}
+
+void resetFunc() {
+  // Function to perform a software reset
+  asm volatile ("  jmp 0");
 }
